@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
-import { useGameStore, type Card } from './stores/game';
-const { cards, gameRunning, cardCount } = storeToRefs(useGameStore());
-const { startGame, updateCards } = useGameStore();
+import { GameLevel, useGameStore, type Card } from './stores/game';
+const { cards, gameRunning, gameLevel, moves, gameOver } = storeToRefs(useGameStore());
+const { startGame, updateCards, updateMoves } = useGameStore();
 
-const currentCardCount = ref(cardCount);
 const turnedCard = ref<Card | null>(null);
 const waitShowingCardFlip = ref(false);
 
 const startNewGame = () => {
-  startGame(currentCardCount.value);
+  startGame(gameLevel.value);
+  turnedCard.value = null;
 }
 
+const isFlipped = (card: Card) => {
+  return card.matched || card.id === turnedCard.value?.id;
+};
+
 const gridSize = computed(() => {
-  switch (cardCount.value) {
+  switch (gameLevel.value) {
     case 6:
       return 'grid-rows-2 grid-cols-3';
     case 9:
@@ -26,34 +30,58 @@ const gridSize = computed(() => {
   }
 });
 
+const buttonText = computed(() => {
+  if (gameOver.value) return 'New Game';
+  if (gameRunning.value) return 'Restart';
+  return 'Start Game';
+});
+
 const flipCard = (card: Card) => {
-  if (card.matched || turnedCard.value?.id === card.id) return;
+
+  if (card.matched || turnedCard.value?.id === card.id || waitShowingCardFlip.value || !gameRunning.value) return;
   if (!turnedCard.value) {
     turnedCard.value = card;
   }
   else if (turnedCard.value?.card === card.card) {
     updateCards(turnedCard.value.card);
+    turnedCard.value = null;
+  }
+  else {
+    updateMoves();
+    waitShowingCardFlip.value = true;
+    card.matched = true;
+    setTimeout(() => {
+      waitShowingCardFlip.value = false;
+      card.matched = false;
+      turnedCard.value = null;
+    }, 1000);
   }
 }
 </script>
-
 <template>
   <header>
-    <h1 class="w-full text-center">Hello</h1>
+    <h1 class="w-full text-center">Memory</h1>
   </header>
   <main>
     <div>
       <h2>Lets play a game of Memory!</h2>
       <div>
-        <select class="select" v-model="currentCardCount" @change="startNewGame">
-          <option v-for="count in [6, 9, 12, 15]" :value="count">{{ count }}</option>
+        <select class="select" v-model="gameLevel" @change="startNewGame">
+          <option v-for="[key, val] in Object.entries(GameLevel)" :value="val">{{ key }}</option>
         </select>
-        <button class="btn btn-blue" @click="startNewGame">Start Game</button>
+        <button class="btn btn-blue" @click="startNewGame">{{ buttonText }}</button>
       </div>
+      <p>moves left: {{ gameOver ? 0 : moves || gameLevel }}</p>
     </div>
-    <div v-if="gameRunning" class="grid gap-4" :class="gridSize">
-      <div v-for="card in cards" :key="card.id" @click="flipCard(card)" :class="card.matched ? 'blue' : 'card'">
-        <div class="h-36 w-36 text-8xl flex justify-center items-center border">{{ card.card }}</div>
+    <dialog :open="gameOver">You lost!!!</dialog>
+    <div class="grid gap-4" :class="gridSize">
+      <div v-for="card in cards" :key="card.id" @click="flipCard(card)"
+        :class="card.matched || turnedCard?.id === card.id ? 'blue' : 'card'">
+        <Transition name="flip">
+          <div v-if="isFlipped(card)" class="h-36 w-36 text-8xl flex justify-center items-center border card-front">{{
+            card.card }}</div>
+          <div v-else class="h-36 w-36 text-8xl flex justify-center items-center border card-back"></div>
+        </Transition>
       </div>
     </div>
   </main>
@@ -89,5 +117,32 @@ select::after {
   height: 0.5em;
   background-color: #bc2424;
   clip-path: polygon(100% 0%, 0 0%, 50% 100%);
+}
+
+.card-front,
+.card-back {
+  position: relative;
+  will-change: transform;
+}
+
+.card-back {
+  background: linear-gradient(135deg, #71b7e6ba, #9c59b674);
+}
+
+.flip-enter-active,
+.flip-leave-active {
+  transition: all 0.4s ease;
+}
+
+.flip-leave-active {
+  display: none;
+}
+
+
+.flip-enter-from,
+.flip-leave-to {
+  transform: rotateY(180deg);
+  opacity: 0;
+
 }
 </style>

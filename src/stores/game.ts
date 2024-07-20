@@ -3,10 +3,22 @@ import { v4 } from "uuid";
 
 const cards = ['🎃', '🔥', '🚗', '🚐', '👺', '👻', '😹', '💀', '💋', '🫀', '🧚‍♀️', '🧟', '👯', '🧵', '🐶', '🦢', "🌵", "🍀", "🌼", "🌎"];
 
-export type Card = {
-	id: number;
+export class Card {
+	id: string;
 	card: string;
 	matched: boolean;
+	constructor(vals: { card: string, matched: boolean }) {
+		this.id = v4();
+		this.card = vals.card;
+		this.matched = vals.matched;
+	}
+}
+
+export const GameLevel = {
+	Easy: 6,
+	Medium: 9,
+	Hard: 12,
+	Extreme: 15
 }
 
 const shuffle = (array: string[]): string[] => {
@@ -31,16 +43,18 @@ export const useGameStore = defineStore('game', {
 		gameOver: false,
 		didWin: false,
 		gameRunning: false,
-		cardCount: 6,
-		cards: [] as Card[],
+		gameLevel: GameLevel.Easy,
+		cards: randomizeCards(GameLevel.Easy).map(card => new Card({ card, matched: false })),
+		moves: 0
 	}),
 	actions: {
-		startGame(cardCount: number) {
+		startGame(gameLevel: number) {
 			this.gameRunning = true;
 			this.gameOver = false;
 			this.didWin = false;
-			this.cardCount = cardCount;
-			this.cards = randomizeCards(cardCount).map(card => ({ card, matched: false, id: v4() }));
+			this.gameLevel = gameLevel;
+			this.cards = randomizeCards(gameLevel).map(card => new Card({ card, matched: false }));
+			this.moves = gameLevel + 2;
 			this.score = 0;
 		},
 		endGame() {
@@ -60,6 +74,17 @@ export const useGameStore = defineStore('game', {
 				}
 			});
 			this.score++;
+			if (this.cards.every((card: Card) => card.matched)) {
+				setTimeout(() => {
+					this.wonGame();
+				}, 1000);
+			}
+		},
+		updateMoves() {
+			this.moves--;
+			if (this.moves === 0) {
+				this.endGame();
+			}
 		}
 	}
 });
