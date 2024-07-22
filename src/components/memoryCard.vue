@@ -38,6 +38,7 @@ const { card, isFlipped } = defineProps({
 	border: 1px solid gray;
 	border-radius: 5px;
 	box-shadow: 1px 1px 3px gray, 3px 3px 9px gray;
+	flex: 1;
 }
 
 .card-back {
@@ -63,15 +64,16 @@ const { card, isFlipped } = defineProps({
 }
 
 .card-back,
-.card-back {
-	@apply h-28 w-28;
+.card-front {
+	@apply min-h-28 min-w-28;
+	@apply max-h-28 max-w-28;
 }
 
 @media screen and (max-width: 800px) {
 
 	.card-back,
 	.card-front {
-		@apply h-16 w-16;
+		@apply min-h-16 min-w-16;
 	}
 
 	.card-front {

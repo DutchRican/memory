@@ -16,7 +16,7 @@ export class Card {
 
 export const GameLevel = {
 	Easy: 6,
-	Medium: 9,
+	Medium: 10,
 	Hard: 12,
 	Extreme: 15
 }

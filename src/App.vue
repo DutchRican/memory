@@ -4,7 +4,7 @@ import { computed, ref } from 'vue';
 import InfoDialog from './components/InfoDialog.vue';
 import MemoryCard from './components/memoryCard.vue';
 import { GameLevel, useGameStore, type Card } from './stores/game';
-const { cards, gameRunning, gameLevel, moves, gameOver, didWin } = storeToRefs(useGameStore());
+const { cards, gameRunning, gameLevel, moves, gameOver, score } = storeToRefs(useGameStore());
 const { startGame, updateCards, updateMoves } = useGameStore();
 
 const turnedCard = ref<Card | null>(null);
@@ -24,7 +24,7 @@ const gridSize = computed(() => {
   switch (gameLevel.value) {
     case 6:
       return 'grid easyGrid';
-    case 9:
+    case 10:
       return 'grid mediumGrid';
     case 12:
       return 'grid hardGrid';
@@ -63,8 +63,10 @@ const flipCard = (card: Card) => {
 }
 </script>
 <template>
-  <header class="w-full h-16 bg-[#ead3b1] content-center">
-    <h1 class="w-full text-center text-4xl text-blue-800">Memory</h1>
+  <header class="w-full h-16 bg-[#ead3b1] mb-2 flex justify-center items-center">
+    <p class="flex-1 min-w-44"></p>
+    <h1 class="w-full text-center text-4xl text-blue-800 flex-2">Memory</h1>
+    <p class="flex-1 pr-5 min-w-44">{{ gameRunning ? `current score: ${score}` : '' }}</p>
   </header>
   <main class="flex flex-col max-h-[80dvh]">
     <div>
@@ -77,11 +79,11 @@ const flipCard = (card: Card) => {
         </div>
         <button class="btn btn-blue" @click="startNewGame(true)">{{ buttonText }}</button>
       </div>
-      <p class="text-center" v-if="gameRunning">moves left: {{ gameOver ? 0 : moves || gameLevel }}</p>
-      <p class="text-center" v-else>Please start a new game</p>
     </div>
     <info-dialog />
-    <div class="flex justify-center items-center h-[80dvh]">
+    <div class="flex justify-center items-center h-[80dvh] flex-col">
+      <p class="text-center" v-if="gameRunning">moves left: {{ gameOver ? 0 : moves || gameLevel }}</p>
+      <p class="text-center" v-else>Please start a new game</p>
       <div class="pt-4 self-center">
         <div :class="gridSize">
           <div v-for="card in cards" :key="card.id" @click="flipCard(card)" class="flex justify-center">
@@ -127,7 +129,7 @@ select::after {
 }
 
 .grid {
-  gap: 4px;
+  gap: 8px;
   width: fit-content;
 }
 
@@ -138,8 +140,8 @@ select::after {
 
 .mediumGrid {
   /* width: 800px; */
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, 1fr);
 }
 
 .hardGrid {
@@ -163,7 +165,7 @@ select::after {
   }
 
   .grid {
-    gap: 6px;
+    gap: 10px;
   }
 
   .easyGrid,
@@ -180,8 +182,8 @@ select::after {
   }
 
   .mediumGrid {
-    grid-template-rows: repeat(6, 1fr);
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(5, 1fr);
   }
 
   .hardGrid {
