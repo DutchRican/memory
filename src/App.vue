@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
+import InfoDialog from './components/InfoDialog.vue';
+import MemoryCard from './components/memoryCard.vue';
 import { GameLevel, useGameStore, type Card } from './stores/game';
-const { cards, gameRunning, gameLevel, moves, gameOver, score } = storeToRefs(useGameStore());
+const { cards, gameRunning, gameLevel, moves, gameOver, didWin } = storeToRefs(useGameStore());
 const { startGame, updateCards, updateMoves } = useGameStore();
 
 const turnedCard = ref<Card | null>(null);
 const waitShowingCardFlip = ref(false);
-const dialog = ref<HTMLDialogElement | null>(null);
 
-const startNewGame = () => {
-  startGame(gameLevel.value);
+
+const startNewGame = (restart: boolean) => {
+  startGame(gameLevel.value, restart);
   turnedCard.value = null;
 }
 
@@ -23,7 +25,7 @@ const gridSize = computed(() => {
     case 6:
       return 'grid-rows-2 grid-cols-3 w-[600px]';
     case 9:
-      return 'grid-rows-3 grid-cols-6 w-[700px]';
+      return 'grid-rows-3 grid-cols-6 w-[800px]';
     case 12:
       return 'grid-rows-4 grid-cols-6 w-[800px]';
     case 15:
@@ -50,61 +52,39 @@ const flipCard = (card: Card) => {
     updateMoves();
     waitShowingCardFlip.value = true;
     card.matched = true;
-    setTimeout(() => {
-      waitShowingCardFlip.value = false;
-      card.matched = false;
-      turnedCard.value = null;
-    }, 1000);
-  }
-}
-
-watch(gameOver, () => {
-  if (gameOver) {
-    if (dialog.value) {
-      dialog.value?.showModal();
+    if (gameRunning.value) {
+      setTimeout(() => {
+        waitShowingCardFlip.value = false;
+        card.matched = false;
+        turnedCard.value = null;
+      }, 1000);
     }
   }
-});
-
+}
 </script>
 <template>
-  <header class="w-full h-16 bg-blue-500 content-center">
-    <h1 class="w-full text-center text-4xl">Memory</h1>
+  <header class="w-full h-16 bg-green-300 content-center">
+    <h1 class="w-full text-center text-4xl text-blue-800">Memory</h1>
   </header>
   <main class="flex flex-col max-h-[80dvh]">
     <div>
       <div class="flex justify-between items-center px-5">
         <div>
           <label for="game-level" class="pr-2">Game Level</label>
-          <select class="select" name="game-level" v-model="gameLevel" @change="startNewGame">
+          <select class="select" name="game-level" v-model="gameLevel" @change="startNewGame(false)">
             <option v-for="[key, val] in Object.entries(GameLevel)" :value="val">{{ key }}</option>
           </select>
         </div>
-        <button class="btn btn-blue" @click="startNewGame">{{ buttonText }}</button>
+        <button class="btn btn-blue" @click="startNewGame(true)">{{ buttonText }}</button>
       </div>
       <p class="text-center" v-if="gameRunning">moves left: {{ gameOver ? 0 : moves || gameLevel }}</p>
+      <p class="text-center" v-else>Please start a new game</p>
     </div>
-    <dialog ref="dialog">
-      <form class="w-96 h-96 flex flex-col justify-between items-center py-3">
-        <h2 class="text-xl">Sorry, you lost!</h2>
-        <p>Your final score was: {{ score }}</p>
-        <div class="flex w-full justify-end px-3"><button class="btn btn-blue">Close</button></div>
-      </form>
-    </dialog>
+    <info-dialog />
     <div class="pt-4 self-center">
       <div class="grid gap-4" :class="gridSize">
-        <div v-for="card in cards" :key="card.id" @click="flipCard(card)" class="flex justify-center"
-          :class="card.matched || turnedCard?.id === card.id ? 'blue' : 'card'">
-          <Transition name="flip">
-            <div v-if="isFlipped(card)"
-              :class="[gameLevel === GameLevel.Extreme ? 'w-24 h-24' : 'h-32 w-32', gameRunning ? 'cursor-pointer' : 'cursor-not-allowed']"
-              class="text-8xl flex justify-center items-center border card-front">
-              {{
-                card.card }}</div>
-            <div v-else
-              :class="[gameLevel === GameLevel.Extreme ? 'w-24 h-24' : 'h-32 w-32', gameRunning ? 'cursor-pointer' : 'cursor-not-allowed']"
-              class="text-8xl flex justify-center items-center border card-back"></div>
-          </Transition>
+        <div v-for="card in cards" :key="card.id" @click="flipCard(card)" class="flex justify-center">
+          <memory-Card :card="card" :is-flipped="isFlipped" :game-level="gameLevel" />
         </div>
       </div>
     </div>
@@ -141,38 +121,5 @@ select::after {
   height: 0.5em;
   background-color: #bc2424;
   clip-path: polygon(100% 0%, 0 0%, 50% 100%);
-}
-
-.card-front,
-.card-back {
-  position: relative;
-  will-change: transform;
-}
-
-.card-back {
-  background-image: url('./assets/cardback.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-}
-
-.flip-enter-active,
-.flip-leave-active {
-  transition: all 0.4s ease;
-}
-
-.flip-leave-active {
-  display: none;
-}
-
-
-.flip-enter-from,
-.flip-leave-to {
-  transform: rotateY(180deg);
-  opacity: 0;
-
-}
-
-dialog::backdrop {
-  background-color: transparent 0.7;
 }
 </style>

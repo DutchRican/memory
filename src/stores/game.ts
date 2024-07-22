@@ -48,8 +48,8 @@ export const useGameStore = defineStore('game', {
 		moves: 0
 	}),
 	actions: {
-		startGame(gameLevel: number) {
-			this.gameRunning = true;
+		startGame(gameLevel: number, restart = true) {
+			this.gameRunning = restart;
 			this.gameOver = false;
 			this.didWin = false;
 			this.gameLevel = gameLevel;
