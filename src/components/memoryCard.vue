@@ -64,14 +64,18 @@ const { card, isFlipped } = defineProps({
 
 .card-back,
 .card-back {
-	@apply min-h-28 min-w-28;
+	@apply h-28 w-28;
 }
 
 @media screen and (max-width: 800px) {
 
 	.card-back,
-	.card-back {
-		@apply min-h-16 min-w-16;
+	.card-front {
+		@apply h-16 w-16;
+	}
+
+	.card-front {
+		@apply text-5xl;
 	}
 }
 </style>
