@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { Card, GameLevel, useGameStore } from '../stores/game';
+import { Card, useGameStore } from '../stores/game';
 const { gameRunning } = storeToRefs(useGameStore());
 
 const { card, isFlipped } = defineProps({
@@ -21,13 +21,11 @@ const { card, isFlipped } = defineProps({
 
 <template>
 	<Transition name="flip">
-		<div v-if="isFlipped(card)"
-			:class="[gameLevel === GameLevel.Extreme ? 'w-24 h-24' : 'h-32 w-32', gameRunning ? 'cursor-pointer' : 'cursor-not-allowed']"
+		<div v-if="isFlipped(card)" :class="[gameRunning ? 'cursor-pointer' : 'cursor-not-allowed']"
 			class="text-8xl flex justify-center items-center border card-front">
 			{{
 				card.card }}</div>
-		<div v-else
-			:class="[gameLevel === GameLevel.Extreme ? 'w-24 h-24' : 'h-32 w-32', gameRunning ? 'cursor-pointer' : 'cursor-not-allowed']"
+		<div v-else :class="[gameRunning ? 'cursor-pointer' : 'cursor-not-allowed']"
 			class="text-8xl flex justify-center items-center border card-back"></div>
 	</Transition>
 </template>
@@ -62,5 +60,18 @@ const { card, isFlipped } = defineProps({
 .flip-leave-to {
 	transform: rotateY(180deg);
 	opacity: 0;
+}
+
+.card-back,
+.card-back {
+	@apply min-h-28 min-w-28;
+}
+
+@media screen and (max-width: 800px) {
+
+	.card-back,
+	.card-back {
+		@apply min-h-16 min-w-16;
+	}
 }
 </style>

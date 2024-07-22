@@ -23,13 +23,13 @@ const isFlipped = (card: Card) => {
 const gridSize = computed(() => {
   switch (gameLevel.value) {
     case 6:
-      return 'grid-rows-2 grid-cols-3 w-[600px]';
+      return 'grid easyGrid';
     case 9:
-      return 'grid-rows-3 grid-cols-6 w-[800px]';
+      return 'grid mediumGrid';
     case 12:
-      return 'grid-rows-4 grid-cols-6 w-[800px]';
+      return 'grid hardGrid';
     case 15:
-      return 'grid-rows-5 grid-cols-6 w-[900px] h-[600px]';
+      return 'grid extremeGrid';
   }
 });
 
@@ -63,7 +63,7 @@ const flipCard = (card: Card) => {
 }
 </script>
 <template>
-  <header class="w-full h-16 bg-green-300 content-center">
+  <header class="w-full h-16 bg-[#ead3b1] content-center">
     <h1 class="w-full text-center text-4xl text-blue-800">Memory</h1>
   </header>
   <main class="flex flex-col max-h-[80dvh]">
@@ -81,13 +81,16 @@ const flipCard = (card: Card) => {
       <p class="text-center" v-else>Please start a new game</p>
     </div>
     <info-dialog />
-    <div class="pt-4 self-center">
-      <div class="grid gap-4" :class="gridSize">
-        <div v-for="card in cards" :key="card.id" @click="flipCard(card)" class="flex justify-center">
-          <memory-Card :card="card" :is-flipped="isFlipped" :game-level="gameLevel" />
+    <div class="flex justify-center items-center h-[80dvh]">
+      <div class="pt-4 self-center">
+        <div :class="gridSize">
+          <div v-for="card in cards" :key="card.id" @click="flipCard(card)" class="flex justify-center">
+            <memory-Card :card="card" :is-flipped="isFlipped" :game-level="gameLevel" />
+          </div>
         </div>
       </div>
     </div>
+
   </main>
 </template>
 
@@ -121,5 +124,69 @@ select::after {
   height: 0.5em;
   background-color: #bc2424;
   clip-path: polygon(100% 0%, 0 0%, 50% 100%);
+}
+
+.grid {
+  gap: 4px;
+  width: fit-content;
+}
+
+.easyGrid {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.mediumGrid {
+  /* width: 800px; */
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.hardGrid {
+  /* width: 800px; */
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+}
+
+.extremeGrid {
+  /* width: 900px; */
+
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+}
+
+
+@media screen and (max-width: 800px) {
+  .select {
+    width: 110px;
+    margin: 5px;
+  }
+
+  .grid {
+    gap: 6px;
+  }
+
+  .easyGrid,
+  .mediumGrid,
+  .hardGrid,
+  .extremeGrid {
+    width: auto;
+    height: auto;
+  }
+
+  .extremeGrid {
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+  }
+
+  .mediumGrid {
+    grid-template-rows: repeat(6, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .hardGrid {
+    grid-template-rows: repeat(6, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 </style>
