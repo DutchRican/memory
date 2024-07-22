@@ -5,7 +5,7 @@ const { gameRunning } = storeToRefs(useGameStore());
 
 const { card, isFlipped } = defineProps({
 	card: {
-		type: Card,
+		type: Object as () => Card,
 		required: true,
 	},
 	isFlipped: {
@@ -16,7 +16,7 @@ const { card, isFlipped } = defineProps({
 		type: Number,
 		required: true,
 	},
-})
+});
 </script>
 
 <template>

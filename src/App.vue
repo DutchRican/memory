@@ -1,37 +1,16 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { computed, ref } from 'vue';
-import InfoDialog from './components/InfoDialog.vue';
-import MemoryCard from './components/memoryCard.vue';
-import { GameLevel, useGameStore, type Card } from './stores/game';
-const { cards, gameRunning, gameLevel, moves, gameOver, score } = storeToRefs(useGameStore());
-const { startGame, updateCards, updateMoves } = useGameStore();
-
-const turnedCard = ref<Card | null>(null);
-const waitShowingCardFlip = ref(false);
+import { computed } from 'vue';
+import CardGrid from './components/cardGrid.vue';
+import informDialog from './components/informDialog.vue';
+import { GameLevel, useGameStore } from './stores/game';
+const { gameRunning, gameLevel, moves, gameOver, score } = storeToRefs(useGameStore());
+const { startGame, } = useGameStore();
 
 
 const startNewGame = (restart: boolean) => {
   startGame(gameLevel.value, restart);
-  turnedCard.value = null;
 }
-
-const isFlipped = (card: Card) => {
-  return card.matched || card.id === turnedCard.value?.id;
-};
-
-const gridSize = computed(() => {
-  switch (gameLevel.value) {
-    case 6:
-      return 'grid easyGrid';
-    case 10:
-      return 'grid mediumGrid';
-    case 12:
-      return 'grid hardGrid';
-    case 15:
-      return 'grid extremeGrid';
-  }
-});
 
 const buttonText = computed(() => {
   if (gameOver.value) return 'New Game';
@@ -39,28 +18,6 @@ const buttonText = computed(() => {
   return 'Start Game';
 });
 
-const flipCard = (card: Card) => {
-  if (card.matched || turnedCard.value?.id === card.id || waitShowingCardFlip.value || !gameRunning.value) return;
-  if (!turnedCard.value) {
-    turnedCard.value = card;
-  }
-  else if (turnedCard.value?.card === card.card) {
-    updateCards(turnedCard.value.card);
-    turnedCard.value = null;
-  }
-  else {
-    updateMoves();
-    waitShowingCardFlip.value = true;
-    card.matched = true;
-    if (gameRunning.value) {
-      setTimeout(() => {
-        waitShowingCardFlip.value = false;
-        card.matched = false;
-        turnedCard.value = null;
-      }, 1000);
-    }
-  }
-}
 </script>
 <template>
   <header class="w-full h-16 bg-[#ead3b1] mb-2 flex justify-center items-center">
@@ -72,24 +29,21 @@ const flipCard = (card: Card) => {
     <div>
       <div class="flex justify-between items-center px-5">
         <div>
-          <label for="game-level" class="pr-2">Game Level</label>
-          <select class="select" name="game-level" v-model="gameLevel" @change="startNewGame(false)">
-            <option v-for="[key, val] in Object.entries(GameLevel)" :value="val">{{ key }}</option>
-          </select>
+          <label class="pr-2">Game Level
+            <select class="select" v-model="gameLevel" @change="startNewGame(false)">
+              <option v-for="[key, val] in Object.entries(GameLevel)" :value="val">{{ key }}</option>
+            </select>
+          </label>
         </div>
         <button class="btn btn-blue" @click="startNewGame(true)">{{ buttonText }}</button>
       </div>
     </div>
-    <info-dialog />
+    <inform-dialog />
     <div class="flex justify-center items-center h-[80dvh] flex-col">
       <p class="text-center" v-if="gameRunning">moves left: {{ gameOver ? 0 : moves || gameLevel }}</p>
       <p class="text-center" v-else>Please start a new game</p>
       <div class="pt-4 self-center">
-        <div :class="gridSize">
-          <div v-for="card in cards" :key="card.id" @click="flipCard(card)" class="flex justify-center">
-            <memory-Card :card="card" :is-flipped="isFlipped" :game-level="gameLevel" />
-          </div>
-        </div>
+        <card-grid />
       </div>
     </div>
 
@@ -126,69 +80,5 @@ select::after {
   height: 0.5em;
   background-color: #bc2424;
   clip-path: polygon(100% 0%, 0 0%, 50% 100%);
-}
-
-.grid {
-  gap: 8px;
-  width: fit-content;
-}
-
-.easyGrid {
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-}
-
-.mediumGrid {
-  /* width: 800px; */
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, 1fr);
-}
-
-.hardGrid {
-  /* width: 800px; */
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(4, 1fr);
-}
-
-.extremeGrid {
-  /* width: 900px; */
-
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(5, 1fr);
-}
-
-
-@media screen and (max-width: 800px) {
-  .select {
-    width: 110px;
-    margin: 5px;
-  }
-
-  .grid {
-    gap: 10px;
-  }
-
-  .easyGrid,
-  .mediumGrid,
-  .hardGrid,
-  .extremeGrid {
-    width: auto;
-    height: auto;
-  }
-
-  .extremeGrid {
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(6, 1fr);
-  }
-
-  .mediumGrid {
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(5, 1fr);
-  }
-
-  .hardGrid {
-    grid-template-rows: repeat(6, 1fr);
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 </style>

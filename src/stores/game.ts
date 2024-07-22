@@ -1,3 +1,4 @@
+import { useStorage } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { v4 } from "uuid";
 
@@ -38,14 +39,14 @@ const randomizeCards = (cardCount: number): string[] => {
 
 export const useGameStore = defineStore('game', {
 	state: () => ({
-		score: 0,
+		score: useStorage('score', 0),
 		highScore: 0,
 		gameOver: false,
 		didWin: false,
-		gameRunning: false,
-		gameLevel: GameLevel.Easy,
-		cards: randomizeCards(GameLevel.Easy).map(card => new Card({ card, matched: false })),
-		moves: 0
+		gameRunning: useStorage('gameRunning', false),
+		gameLevel: useStorage('gameLevel', GameLevel.Easy),
+		cards: useStorage('cards', randomizeCards(GameLevel.Easy).map(card => new Card({ card, matched: false })) as Card[]),
+		moves: useStorage('moves', 0),
 	}),
 	actions: {
 		startGame(gameLevel: number, restart = true) {
@@ -53,7 +54,7 @@ export const useGameStore = defineStore('game', {
 			this.gameOver = false;
 			this.didWin = false;
 			this.gameLevel = gameLevel;
-			this.cards = randomizeCards(gameLevel).map(card => new Card({ card, matched: false }));
+			this.cards = randomizeCards(gameLevel).map(card => new Card({ card, matched: false })) as Card[];
 			this.moves = gameLevel + 2;
 			this.score = 0;
 		},
